@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Music Player & Playlist Shelf</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #080d18;
+    color: white;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.music-player {
+    width: 100%;
+    max-width: 950px;
+    background: #111827;
+    border: 1px solid #344054;
+    border-radius: 16px;
+    padding: 25px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 25px;
+}
+
+.album-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.album-cover {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #202b3a;
+    border: 2px solid #38bdf8;
+    border-radius: 9px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.vinyl {
+    width: 80px;
+    height: 80px;
+    border: 2px solid #38bdf8;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: spin 5s linear infinite;
+    animation-play-state: paused;
+}
+
+.vinyl.playing {
+    animation-play-state: running;
+}
+
+.vinyl::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background: #38bdf8;
+    border-radius: 50%;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.song-info h3 {
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+
+.song-info p {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.progress-container {
+    margin-top: 18px;
+}
+
+.progress {
+    width: 100%;
+    accent-color: #38bdf8;
+    cursor: pointer;
+}
+
+.time-info {
+    display: flex;
+    justify-content: space-between;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.controls button {
+    width: 35px;
+    height: 35px;
+    border: none;
+    border-radius: 50%;
+    background: #4b5563;
+    color: white;
+    cursor: pointer;
+}
+
+.controls .play-btn {
+    width: 45px;
+    height: 45px;
+    background: #38bdf8;
+    color: #07111e;
+    font-size: 18px;
+}
+
+.controls button:hover {
+    background: #0ea5e9;
+    transform: scale(1.08);
+}
+
+.playlist-section h2 {
+    font-size: 17px;
+    margin-bottom: 12px;
+}
+
+.track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.track {
+    background: #202b3a;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s, border-color 0.3s;
+}
+
+.track:hover {
+    transform: translateX(6px);
+    border-color: #38bdf8;
+}
+
+.track.active {
+    border: 2px solid #38bdf8;
+}
+
+.track-details {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.track-icon {
+    width: 21px;
+    height: 21px;
+    border-radius: 50%;
+    background: #374151;
+}
+
+.track.active .track-icon {
+    background: #38bdf8;
+}
+
+.track h3 {
+    font-size: 13px;
+    margin-bottom: 3px;
+}
+
+.track p, .duration {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.play-label {
+    color: #38bdf8;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Mobile responsive layout */
+@media (max-width: 767px) {
+    body {
+        padding: 15px;
+        align-items: flex-start;
+    }
+
+    .music-player {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 15px;
+    }
+
+    .album-section {
+        display: grid;
+        grid-template-columns: 62px 1fr;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .album-cover {
+        width: 62px;
+        height: 62px;
+        margin: 0;
+    }
+
+    .vinyl {
+        width: 27px;
+        height: 27px;
+    }
+
+    .vinyl::before {
+        width: 8px;
+        height: 8px;
+    }
+
+    .progress-container,
+    .controls {
+        grid-column: 1 / -1;
+        margin-top: 0;
+    }
+
+    .track {
+        width: 100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="music-player">
+
+    <!-- Album Player -->
+    <div class="album-section">
+
+        <div class="album-cover">
+            <div class="vinyl" id="vinyl"></div>
+        </div>
+
+        <div class="song-info">
+            <h3 id="song-title">Midnight Echoes</h3>
+            <p id="artist-name">Cyber Wave • 2026</p>
+        </div>
+
+        <div class="progress-container">
+            <input type="range" class="progress"
+                   id="progress" value="0" min="0" max="100">
+
+            <div class="time-info">
+                <span id="current-time">0:00</span>
+                <span id="total-time">3:42</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="previousTrack()">|◀</button>
+            <button class="play-btn" id="playButton"
+                    onclick="togglePlay()">▶</button>
+            <button onclick="nextTrack()">▶|</button>
+        </div>
+
+    </div>
+
+    <!-- Playlist -->
+    <div class="playlist-section">
+        <h2>Up Next</h2>
+
+        <div class="track-list" id="trackList">
+
+            <div class="track active" onclick="selectTrack(0)">
+                <div class="track-details">
+                    <div class="track-icon"></div>
+                    <div>
+                        <h3>01. Neon Route</h3>
+                        <p>3:42</p>
+                    </div>
+                </div>
+                <span class="play-label">PLAY</span>
+            </div>
+
+            <div class="track" onclick="selectTrack(1)">
+                <div class="track-details">
+                    <div class="track-icon"></div>
+                    <div>
+                        <h3>02. Silicon Drift</h3>
+                        <p>4:15</p>
+                    </div>
+                </div>
+                <span class="duration">4:15</span>
+            </div>
+
+            <div class="track" onclick="selectTrack(2)">
+                <div class="track-details">
+                    <div class="track-icon"></div>
+                    <div>
+                        <h3>03. Digital Rain</h3>
+                        <p>2:58</p>
+                    </div>
+                </div>
+                <span class="duration">2:58</span>
+            </div>
+
+            <div class="track" onclick="selectTrack(3)">
+                <div class="track-details">
+                    <div class="track-icon"></div>
+                    <div>
+                        <h3>04. Night Ride</h3>
+                        <p>3:10</p>
+                    </div>
+                </div>
+                <span class="duration">3:10</span>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+const tracks = [
+    { title: "Neon Route", artist: "Cyber Wave", duration: 222 },
+    { title: "Silicon Drift", artist: "Cyber Wave", duration: 255 },
+    { title: "Digital Rain", artist: "Cyber Wave", duration: 178 },
+    { title: "Night Ride", artist: "Cyber Wave", duration: 190 }
+];
+
+let currentTrack = 0;
+let isPlaying = false;
+let currentTime = 0;
+let timer = null;
+
+const vinyl = document.getElementById("vinyl");
+const playButton = document.getElementById("playButton");
+const progress = document.getElementById("progress");
+
+function formatTime(seconds) {
+    let minutes = Math.floor(seconds / 60);
+    let secs = seconds % 60;
+    return minutes + ":" + String(secs).padStart(2, "0");
+}
+
+function updateTrack() {
+    let track = tracks[currentTrack];
+
+    document.getElementById("song-title").textContent =
+        track.title;
+
+    document.getElementById("artist-name").textContent =
+        track.artist + " • 2026";
+
+    document.getElementById("total-time").textContent =
+        formatTime(track.duration);
+
+    currentTime = 0;
+    progress.value = 0;
+
+    document.getElementById("current-time").textContent = "0:00";
+
+    let rows = document.querySelectorAll(".track");
+
+    rows.forEach((row, index) => {
+        row.classList.toggle("active", index === currentTrack);
+
+        let label = row.querySelector(".play-label");
+
+        if (label) label.remove();
+
+        if (index === currentTrack) {
+            let playLabel = document.createElement("span");
+            playLabel.className = "play-label";
+            playLabel.textContent = "PLAY";
+            row.appendChild(playLabel);
+        }
+    });
+}
+
+function togglePlay() {
+    isPlaying = !isPlaying;
+
+    if (isPlaying) {
+        playButton.textContent = "❚❚";
+        vinyl.classList.add("playing");
+
+        timer = setInterval(() => {
+            currentTime++;
+
+            if (currentTime >= tracks[currentTrack].duration) {
+                nextTrack();
+                return;
+            }
+
+            updateProgress();
+        }, 1000);
+
+    } else {
+        playButton.textContent = "▶";
+        vinyl.classList.remove("playing");
+        clearInterval(timer);
+    }
+}
+
+function updateProgress() {
+    let duration = tracks[currentTrack].duration;
+
+    progress.value = (currentTime / duration) * 100;
+
+    document.getElementById("current-time").textContent =
+        formatTime(currentTime);
+}
+
+function selectTrack(index) {
+    currentTrack = index;
+    updateTrack();
+
+    if (!isPlaying) {
+        togglePlay();
+    }
+}
+
+function nextTrack() {
+    currentTrack = (currentTrack + 1) % tracks.length;
+    updateTrack();
+
+    if (isPlaying) {
+        clearInterval(timer);
+        isPlaying = false;
+        togglePlay();
+    }
+}
+
+function previousTrack() {
+    currentTrack =
+        (currentTrack - 1 + tracks.length) % tracks.length;
+
+    updateTrack();
+
+    if (isPlaying) {
+        clearInterval(timer);
+        isPlaying = false;
+        togglePlay();
+    }
+}
+
+progress.addEventListener("input", function() {
+    currentTime = Math.floor(
+        (progress.value / 100) *
+        tracks[currentTrack].duration
+    );
+
+    updateProgress();
+});
+
+updateTrack();
+
+</script>
+
+</body>
+</html>
